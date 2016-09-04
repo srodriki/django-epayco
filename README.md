@@ -9,12 +9,16 @@ risk as this comes without warranty of any kind.
 
 1. Add 'django-epayco' to your INSTALLED_APPS setting like this:
 
-   INSTALLED_APPS = (
+   
+```
+#!python
+
+INSTALLED_APPS = (
         ...
         'django-epayco',
         ...
    )
-
+```
 
 
 2. **Configure** the appplication:
@@ -25,5 +29,3 @@ risk as this comes without warranty of any kind.
 3. **Include** it wherever you want
 
    TODO: Explain what to add and where to add it.
-
-

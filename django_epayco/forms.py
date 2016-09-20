@@ -66,12 +66,7 @@ class EpaycoBaseForm(forms.Form):
         for key, value in self.cleaned_data:
             if key != 'i':
                 # we encrypt everything but the initialization vector
-                self.cleaned_data[key] = crypto.encrypt(self.cleaned_data[key], iv)
+                self.cleaned_data[key] = str(crypto.encrypt(self.cleaned_data[key], iv).get('content'))
         return self.cleaned_data
-
-
-
-
-
 
 

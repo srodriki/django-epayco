@@ -1,3 +1,5 @@
 Django
 setuptools
 twine
+requests
+pycrypto

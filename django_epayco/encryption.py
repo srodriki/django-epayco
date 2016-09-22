@@ -1,13 +1,14 @@
 from Crypto.Cipher import AES
 from Crypto import Random
-from django.conf import settings
 import base64
 
 
 class Crypto(object):
 
-    key = settings.EPAYCO_PRIVATE_KEY
     mode = AES.MODE_CBC
+
+    def __init__(self, key):
+        self.key = key
 
     def encrypt(self, content, iv=None):
         """
@@ -16,16 +17,13 @@ class Crypto(object):
         The encryption method used is AES128 in CBC mode with a PKCS7 padding
         :param content: A string to be encrypted
         :param iv: random 16 bits initialization vector. can usually be the result of get_initialization_vector
-        :return: the encrypted string
+        :return: an bytearray with the encrypted data
         """
         if not iv:
             iv = self.get_initialization_vector() # store the iv for later use and return
-
         encryptor = AES.new(self.key, self.mode, iv)
-        return {
-            "iv": iv,
-            "content": base64.b64encode(encryptor.encrypt(self.pkcs7(content))).decode('utf-8')
-        }
+
+        return base64.b64encode(encryptor.encrypt(self.pkcs7(content)))
 
     def get_initialization_vector(self):
         """

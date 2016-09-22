@@ -62,12 +62,13 @@ class EpaycoBaseForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         if 'data' in kwargs:
-            crypto = Crypto()
+            self.crypto = Crypto(settings.EPAYCO_PRIVATE_KEY)
 
             kwargs.get('data').update({
-                'i': crypto.base_64_encode(crypto.get_initialization_vector()),
+                'i': self.crypto.base_64_encode(self.crypto.get_initialization_vector()),
                 'enpruebas': settings.EPAYCO_TEST_ENV,
-                'public_key': settings.EPAYCO_PUBLIC_KEY
+                'public_key': settings.EPAYCO_PUBLIC_KEY,
+                'lenguaje': 'python'
             })
         super(EpaycoBaseForm, self).__init__(*args, **kwargs)
 
@@ -75,12 +76,28 @@ class EpaycoBaseForm(forms.Form):
         if not self.is_valid():
             print(self.errors)
             # raise Exception('Form data has not been cleared. Please use full_clean() before calling this method ')
-        crypto = Crypto()
-        iv = crypto.base_64_decode(self.cleaned_data.get('i'))
+
+        iv = self.crypto.base_64_decode(self.cleaned_data.get('i'))
         for key, value in self.cleaned_data.items():
             if key != 'i':
                 # we encrypt everything but the initialization vector
-                self.cleaned_data[key] = str(crypto.encrypt(str(value), iv).get('content'))
+                self.cleaned_data[key] = self.crypto.encrypt(str(value), iv).decode('utf-8')
         return self.cleaned_data
+
+
+class EpaycoCreditCardForm(EpaycoBaseForm):
+    """
+    This class extends EpaycoBaseForm and provides specific fields and methods to enable credit card
+    processing using ePayco's REST API.
+    """
+
+    tarjeta = forms.CharField(max_length=50, required=True)
+    fechaExpedicion = forms.CharField(required=False)
+    codigoseguridad = forms.CharField(max_length=4, required=True)
+    franquicia = forms.CharField(required=True)
+    cuotas = forms.CharField(required=True)
+    fechaexpiracion = forms.CharField(required=True)
+
+
 
 

@@ -1,6 +1,6 @@
 from django.test import TestCase
 from django_epayco import encryption
-
+from django.conf import settings
 
 """
 This file will test encryption properties of our encryption library
@@ -9,7 +9,7 @@ This file will test encryption properties of our encryption library
 
 class EncryptedDataSucceeds(TestCase):
     def test_encrypted_data_matches_examples(self):
-        crypto = encryption.Crypto()
+        crypto = encryption.Crypto(settings.EPAYCO_PRIVATE_KEY)
 
         iv = crypto.base_64_decode('MDAwMDAwMDAwMDAwMDAwMA==')
         cellphone = "0000000000"
@@ -23,15 +23,15 @@ class EncryptedDataSucceeds(TestCase):
         }
 
         test_encrypted_data = {
-            'cellphone': 'MgX2/Rg9IhsIclrR6rBcPw==',
-            'dept': 'b9WzUeEU+5dqTU+kUEC29A==',
-            'description': 'HrjCJyRqc+PIniCs2cJodEoiJrP3iXHszYhAZowCuNQ='
+            'cellphone': b'MgX2/Rg9IhsIclrR6rBcPw==',
+            'dept': b'b9WzUeEU+5dqTU+kUEC29A==',
+            'description': b'HrjCJyRqc+PIniCs2cJodEoiJrP3iXHszYhAZowCuNQ='
         }
 
         for key, value in encrypted_data.items():
-            self.assertEqual(value.get('content'), test_encrypted_data.get(key), str(crypto.__class__) +
+            self.assertEqual(value, test_encrypted_data.get(key), str(crypto.__class__) +
                              ' : Not correctly encrypted. Expected: ' + str(test_encrypted_data.get(key)) +
-                             ' but got: ' + str(value.get('content')))
+                             ' but got: ' + str(value))
 
 
 class EncryptedDataFails(TestCase):
@@ -39,7 +39,7 @@ class EncryptedDataFails(TestCase):
     This test class will test if the encryption is different given different parameters
     """
     def test_encrypted_data_does_not_match_examples(self):
-        crypto = encryption.Crypto()
+        crypto = encryption.Crypto(settings.EPAYCO_PRIVATE_KEY)
 
         iv = crypto.get_initialization_vector()
         cellphone = "0000000000"
@@ -59,9 +59,9 @@ class EncryptedDataFails(TestCase):
         }
 
         for key, value in encrypted_data.items():
-            self.assertNotEqual(value.get('content'), test_encrypted_data.get(key), str(crypto.__class__) +
+            self.assertNotEqual(value, test_encrypted_data.get(key), str(crypto.__class__) +
                                 ' : Not correctly encrypted. Expected: ' + str(test_encrypted_data.get(key)) +
-                                ' but got: ' + str(value.get('content')))
+                                ' but got: ' + str(value))
 
 
 class InitializationVectorAlwaysDifferent(TestCase):
@@ -73,7 +73,7 @@ class InitializationVectorAlwaysDifferent(TestCase):
 
         :return:
         """
-        crypto = encryption.Crypto()
+        crypto = encryption.Crypto(settings.EPAYCO_PRIVATE_KEY)
         iv1 = crypto.get_initialization_vector()
         iv2 = crypto.get_initialization_vector()
         self.assertNotEqual(iv1, iv2, 'Initialization vectors should not be equals')

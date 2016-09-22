@@ -1,6 +1,7 @@
 from django.conf import settings
-from .encryption import Crypto
 import requests
+
+from . import forms
 
 
 class ePaycoBasicTransactionObjet(object):
@@ -29,21 +30,25 @@ class ePaycoConnector(object):
         This helper method infuses a request to ePayco with all necessary authentication parameters (properly encrypted) and
         also marks the call as a Test call according to the application's settings
 
-        :param payload: The object representing this
+        :param payload: a dict containing all necessary data
         :param url: url to be requested
         :param method: 'get' or 'post' according to the type of request you're doing to ePayco's API.
         :return: ePayco's response, in a requests.response object
         """
 
-        cryptograph = Crypto()
-
-        setattr(payload, 'public_key', settings.EPAYCO_PUBLIC_KEY)
-        setattr(payload, 'i', cryptograph.get_initialization_vector())
-        setattr(payload, 'lenguaje', 'python')
-        if settings.EPAYCO_TEST_ENVIRONMENT:
-            setattr(payload, 'enpruebas', settings.EPAYCO_TEST_ENVIRONMENT)
         response = requests.request(method, url, data=payload)
         # TODO: Do some post processing here? AKA general error handling?
         return response
+
+    @classmethod
+    def credit_card(cls, data):
+        endpoint = ''  # TODO: Load the correct endpoint
+        requestForm = forms.EpaycoCreditCardForm(data=data)
+        requestForm.full_clean()
+
+        if requestForm.is_valid():
+            # Request is valid, so we process this petition
+            response = cls.request(requestForm.encode_data(), endpoint, 'POST')
+            # TODO: do something with the response.
 
 

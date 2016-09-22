@@ -27,22 +27,24 @@ class EpaycoBaseForm(forms.Form):
     email = forms.EmailField(required=True)
     depto = forms.CharField(required=False)
     ciudad = forms.CharField(required=True)
-    telefono = forms.IntegerField(max_value=9999999, required=False)
-    celular = forms.IntegerField(max_value=9999999999)
+    telefono = forms.CharField(required=False)
+    celular = forms.CharField(required=False)
     ip = forms.IPAddressField(required=True)
+    direccion = forms.CharField(required=True)
+    pais = forms.CharField(max_length=2, required=True)
 
     # Invoicing information
     factura = forms.CharField(required=True)
     descripcion = forms.CharField(required=True)
-    iva = forms.FloatField(required=True, initial=0)
-    baseiva = forms.FloatField(required=True, initial=0)
-    valor = forms.FloatField(required=True)
+    iva = forms.CharField(required=True, initial="0")
+    baseiva = forms.CharField(required=True, initial="0")
+    valor = forms.CharField(required=True)
     moneda = forms.CharField(min_length=3, max_length=3, required=True, initial='COP')
 
     # authentication data
     public_key = forms.CharField(required=True, initial=settings.EPAYCO_PUBLIC_KEY)
-    i = forms.CharField(max_length=16, required=True)
-    enpruebas = forms.BooleanField(required=True, initial=settings.EPAYCO_TEST_ENVIRONMENT)
+    i = forms.CharField(max_length=100, required=True)
+    enpruebas = forms.BooleanField(required=True, initial=settings.EPAYCO_TEST_ENV)
 
     # Response handling communication
     url_respuesta = forms.URLField(required=True)
@@ -58,15 +60,27 @@ class EpaycoBaseForm(forms.Form):
     # Language... not sure why?
     lenguaje = forms.CharField(initial='python', required=True)
 
+    def __init__(self, *args, **kwargs):
+        if 'data' in kwargs:
+            crypto = Crypto()
+
+            kwargs.get('data').update({
+                'i': crypto.base_64_encode(crypto.get_initialization_vector()),
+                'enpruebas': settings.EPAYCO_TEST_ENV,
+                'public_key': settings.EPAYCO_PUBLIC_KEY
+            })
+        super(EpaycoBaseForm, self).__init__(*args, **kwargs)
+
     def encode_data(self):
         if not self.is_valid():
-            raise Exception('Form data has not been cleared. Please use full_clean() before calling this method ')
+            print(self.errors)
+            # raise Exception('Form data has not been cleared. Please use full_clean() before calling this method ')
         crypto = Crypto()
-        iv = crypto.get_initialization_vector()
-        for key, value in self.cleaned_data:
+        iv = crypto.base_64_decode(self.cleaned_data.get('i'))
+        for key, value in self.cleaned_data.items():
             if key != 'i':
                 # we encrypt everything but the initialization vector
-                self.cleaned_data[key] = str(crypto.encrypt(self.cleaned_data[key], iv).get('content'))
+                self.cleaned_data[key] = str(crypto.encrypt(str(value), iv).get('content'))
         return self.cleaned_data
 
 

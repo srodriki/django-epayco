@@ -1,16 +1,13 @@
 from Crypto.Cipher import AES
 from Crypto import Random
-import random
 from django.conf import settings
 import base64
-import os
 
 
 class Crypto(object):
 
     key = settings.EPAYCO_PRIVATE_KEY
     mode = AES.MODE_CBC
-    block_size = 16
 
     def encrypt(self, content, iv=None):
         """
@@ -27,7 +24,7 @@ class Crypto(object):
         encryptor = AES.new(self.key, self.mode, iv)
         return {
             "iv": iv,
-            "content": base64.b64encode(encryptor.encrypt(self.pkcs7(content)))
+            "content": base64.b64encode(encryptor.encrypt(self.pkcs7(content))).decode('utf-8')
         }
 
     def get_initialization_vector(self):
@@ -46,7 +43,9 @@ class Crypto(object):
         :param data:
         :return:
         """
-        length = self.block_size - (len(s) % self.block_size)
+        # calculate the padding length. string is encoded to prevent special characters to destruct our count
+        length = AES.block_size - (len(s.encode('utf-8')) % AES.block_size)
+        # add as many bytes as needed
         s += chr(length)*length
         return s
 

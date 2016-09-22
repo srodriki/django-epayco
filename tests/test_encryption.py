@@ -23,9 +23,9 @@ class EncryptedDataSucceeds(TestCase):
         }
 
         test_encrypted_data = {
-            'cellphone': b'MgX2/Rg9IhsIclrR6rBcPw==',
-            'dept': b'b9WzUeEU+5dqTU+kUEC29A==',
-            'description': b'HrjCJyRqc+PIniCs2cJodEoiJrP3iXHszYhAZowCuNQ='
+            'cellphone': 'MgX2/Rg9IhsIclrR6rBcPw==',
+            'dept': 'b9WzUeEU+5dqTU+kUEC29A==',
+            'description': 'HrjCJyRqc+PIniCs2cJodEoiJrP3iXHszYhAZowCuNQ='
         }
 
         for key, value in encrypted_data.items():
